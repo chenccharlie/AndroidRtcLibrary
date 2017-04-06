@@ -11,7 +11,7 @@ public interface SignalingService {
 
   /**
    * Callback to be registered with {@link SignalingService} to handle incoming signals after
-   * {@link SignalingService#listenOn(String)} a user id.
+   * {@link SignalingService#listenOn(String, SignalHandler)} a user id.
    */
   interface SignalHandler {
 
@@ -26,10 +26,10 @@ public interface SignalingService {
   }
 
   /** Listens for signals sent to the specified user id. */
-  void listenOn(String userId) throws SignalingException;
+  void listenOn(String userId, SignalHandler signalHandler) throws SignalingException;
 
-  /** Stops listening to signals. */
-  void stopListening();
+  /** Stops listening to signals to a user id. */
+  void stopListening(String userId);
 
   /** Send signal message to a peer. */
   void sendSignal(String peerUserId, JSONObject signal);

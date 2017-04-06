@@ -10,6 +10,10 @@ public class SignalingException extends Exception {
     this("", e);
   }
 
+  public SignalingException(String message) {
+    super(message);
+  }
+
   public SignalingException(String message, Throwable e) {
     super(message, e);
   }
