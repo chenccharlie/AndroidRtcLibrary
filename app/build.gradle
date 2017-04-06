@@ -28,6 +28,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
 
+    compile 'com.android.support:support-annotations:25.3.1'
+
     compile 'io.pristine:libjingle:9694@aar'
     compile 'com.pubnub:pubnub-android:3.7.4'
 }
