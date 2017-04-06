@@ -57,30 +57,30 @@ public class PubnubSignalingService
   }
 
   @Override
-  public void connectCallback(String channel, Object message) {
+  public void connectCallback(String userId, Object message) {
     synchronized (signalHandlerLock) {
-      if (signalHandlers.containsKey(channel)) {
-        signalHandlers.get(channel).onConnected(channel);
+      if (signalHandlers.containsKey(userId)) {
+        signalHandlers.get(userId).onConnected(userId);
       }
     }
   }
 
   @Override
-  public void disconnectCallback(String channel, Object message) {
+  public void disconnectCallback(String userId, Object message) {
     synchronized (signalHandlerLock) {
-      if (signalHandlers.containsKey(channel)) {
-        signalHandlers.get(channel).onDisconnected(channel);
-        signalHandlers.remove(channel);
+      if (signalHandlers.containsKey(userId)) {
+        signalHandlers.get(userId).onDisconnected(userId);
+        signalHandlers.remove(userId);
       }
     }
   }
 
   @Override
-  public void successCallback(String channel, Object message) {
+  public void successCallback(String userId, Object message) {
     synchronized (signalHandlerLock) {
       if (!(message instanceof JSONObject)) return; // Ignore if not valid JSON.
-      if (signalHandlers.containsKey(channel)) {
-        signalHandlers.get(channel).onSignalReiceived(channel, (JSONObject) message);
+      if (signalHandlers.containsKey(userId)) {
+        signalHandlers.get(userId).onSignalReiceived(userId, (JSONObject) message);
       }
     }
   }
