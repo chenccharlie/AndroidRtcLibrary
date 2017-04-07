@@ -16,11 +16,20 @@ public interface StunTurnServerProvider {
    * has results.
    */
   interface Callback {
-    void onServersFetched(List<PeerConnection.IceServer> servers);
+    void onServersFetched();
     void onServerFetchFails(NetworkException e);
   }
 
-  /** Call this to fetch STUN and TURN servers from the provider, when completed,
-   * use the {@link Callback} to pass results back to caller. */
+  /**
+   * Call this to fetch STUN and TURN servers from the provider, when completed,
+   * use the {@link Callback} to pass results back to caller.
+   */
   void fetchServers(Callback callback);
+
+  /**
+   * Call this after {@link Callback#onServersFetched()} is called.
+   *
+   * Throws exception if result is not ready yet.
+   */
+  List<PeerConnection.IceServer> getServers() throws NetworkException;
 }

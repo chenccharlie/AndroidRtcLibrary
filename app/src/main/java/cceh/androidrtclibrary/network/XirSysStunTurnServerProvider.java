@@ -1,5 +1,6 @@
 package cceh.androidrtclibrary.network;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
@@ -44,6 +45,8 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
   private final String secret;
   private final String secure;
 
+  @Nullable private List<PeerConnection.IceServer> iceServers;
+
   public XirSysStunTurnServerProvider(
       String domain,
       String application,
@@ -57,6 +60,8 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
     this.identity = identity;
     this.secret = secret;
     this.secure = secure;
+
+    this.iceServers = null;
   }
 
   @Override
@@ -107,6 +112,16 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
     }
 
     Log.i(TAG, "Servers: " + servers.toString());
-    callback.onServersFetched(servers);
+    this.iceServers = servers;
+    callback.onServersFetched();
+  }
+
+  @Override
+  public List<PeerConnection.IceServer> getServers() throws NetworkException {
+    if (iceServers == null) {
+      throw new NetworkException("Servers are not fetched yet.");
+    } else {
+      return iceServers;
+    }
   }
 }

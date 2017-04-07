@@ -21,22 +21,25 @@ import cceh.androidrtclibrary.signaling.SignalingService;
  *
  * Created by Charlie Chen (ccehshmily@gmail.com) on 4/6/17.
  */
-class Connection implements
+public class Connection implements
     PeerConnection.Observer,
     SdpObserver {
 
   /** Handler which processes status changes on a {@link Connection}. */
-  interface ConnectionHandler {
+  public interface ConnectionHandler {
 
     /** Called when a remote stream was added from the peer. */
-    void onRemoteStreamAdded(MediaStream mediaStream);
+    void onRemoteStreamAdded(String peerId, MediaStream mediaStream);
 
-    /** Called when connection status changes. */
-    void onConnectionStateChanged(Status oldStatus, Status newStatus);
+    /** Called when a remote stream was removed by the peer. */
+    void onRemoteStreamRemoved(String peerId, MediaStream mediaStream);
+
+    /** Called when connection status to the peer changes. */
+    void onConnectionStateChanged(String peerId, Status oldStatus, Status newStatus);
   }
 
   /** The status of a {@link Connection}. */
-  enum Status {
+  public enum Status {
     // General
     NEW,
     STREAMING,
@@ -57,9 +60,9 @@ class Connection implements
   private final String userId;
   private final String peerId;
   private final MediaStream localMediaStream;
+  private final SignalingService signalingService;
   private final ConnectionParams connectionParams;
   private final ConnectionHandler connectionHandler;
-  private final SignalingService signalingService;
   private final PeerConnection peerConnection;
   private final Object lock;
 
@@ -69,15 +72,15 @@ class Connection implements
       String userId,
       String peerId,
       MediaStream localMediaStream,
+      SignalingService signalingService,
       ConnectionParams connectionParams,
-      ConnectionHandler connectionHandler,
-      SignalingService signalingService) {
+      ConnectionHandler connectionHandler) {
     this.userId = userId;
     this.peerId = peerId;
     this.localMediaStream = localMediaStream;
+    this.signalingService = signalingService;
     this.connectionParams = connectionParams;
     this.connectionHandler = connectionHandler;
-    this.signalingService = signalingService;
     this.status = Status.NEW;
     this.lock = new Object();
 
@@ -227,7 +230,7 @@ class Connection implements
     synchronized (lock) {
       Status oldStatus = status;
       status = newStatus;
-      connectionHandler.onConnectionStateChanged(oldStatus, newStatus);
+      connectionHandler.onConnectionStateChanged(peerId, oldStatus, newStatus);
     }
   }
 
@@ -262,12 +265,13 @@ class Connection implements
   public void onAddStream(MediaStream mediaStream) {
     synchronized (lock) {
       setStatus(Status.STREAMING);
-      connectionHandler.onRemoteStreamAdded(mediaStream);
+      connectionHandler.onRemoteStreamAdded(peerId, mediaStream);
     }
   }
 
   @Override
   public void onRemoveStream(MediaStream mediaStream) {
+    connectionHandler.onRemoteStreamRemoved(peerId, mediaStream);
     disconnect();
   }
 
