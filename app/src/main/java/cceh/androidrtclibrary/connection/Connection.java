@@ -1,4 +1,4 @@
-package cceh.androidrtclibrary;
+package cceh.androidrtclibrary.connection;
 
 import android.util.Log;
 
