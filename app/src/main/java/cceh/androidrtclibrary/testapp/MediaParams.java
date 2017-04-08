@@ -1,4 +1,4 @@
-package cceh.androidrtclibrary;
+package cceh.androidrtclibrary.testapp;
 
 import org.webrtc.MediaConstraints;
 
@@ -8,7 +8,7 @@ import org.webrtc.MediaConstraints;
  * Created by Charlie Chen (ccehshmily@gmail.com) on 4/7/17.
  */
 public class MediaParams {
-  private static MediaConstraints defaultVideoConstraints() {
+  public static MediaConstraints defaultVideoConstraints() {
     MediaConstraints videoConstraints = new MediaConstraints();
     videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth","1280"));
     videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight","720"));
@@ -17,7 +17,7 @@ public class MediaParams {
     return videoConstraints;
   }
 
-  private static MediaConstraints defaultAudioConstraints() {
+  public static MediaConstraints defaultAudioConstraints() {
     MediaConstraints audioConstraints = new MediaConstraints();
     return audioConstraints;
   }

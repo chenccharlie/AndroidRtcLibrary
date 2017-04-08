@@ -8,11 +8,11 @@ import org.webrtc.MediaStream;
  *
  * Created by Charlie Chen (ccehshmily@gmail.com) on 4/7/17.
  */
-public class RtcEventListener {
-  public void onClientReady() {};
-  public void onClientDied(Throwable e) {};
-  public void onConnected(String peerId) {};
-  public void onDisconnected(String peerId) {};
-  public void onRemoteStreamAdded(String peerId, MediaStream mediaStream) {};
-  public void onRemoteStreamRemoved(String peerId, MediaStream mediaStream) {};
+public interface RtcEventListener {
+  void onClientReady();
+  void onClientDied(Throwable e);
+  void onConnected(String peerId);
+  void onDisconnected(String peerId);
+  void onRemoteStreamAdded(String peerId, MediaStream mediaStream);
+  void onRemoteStreamRemoved(String peerId, MediaStream mediaStream);
 }
