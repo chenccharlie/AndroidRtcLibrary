@@ -203,6 +203,7 @@ public class Connection implements
       setStatus(Status.DISCONNECTED);
       this.peerConnection.removeStream(this.localMediaStream);
       this.peerConnection.close();
+      this.peerConnection.dispose();
     }
   }
 
@@ -231,6 +232,7 @@ public class Connection implements
       Status oldStatus = status;
       status = newStatus;
       connectionHandler.onConnectionStateChanged(peerId, oldStatus, newStatus);
+      Log.d(TAG, "Connection status to user " + peerId + " changed from " + oldStatus + " to " + newStatus);
     }
   }
 
