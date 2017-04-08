@@ -12,6 +12,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.webrtc.MediaStream;
@@ -109,6 +110,7 @@ public class MainActivity
     LinearLayout loginBox = (LinearLayout) findViewById(R.id.login_box);
     loginBox.setVisibility(View.GONE);
     this.username = enteredUserName;
+    setStatusBox(this.username, R.string.status_initializing);
     startListening();
   }
 
@@ -117,6 +119,7 @@ public class MainActivity
     peerUsername = textPeerName.getText().toString();
     rtcClient.connectTo(peerUsername);
 
+    setStatusBox(this.username, R.string.status_calling, peerUsername);
     Button callButton = (Button) findViewById(R.id.button_call);
     callButton.setEnabled(false);
     Button endCallButton = (Button) findViewById(R.id.button_end_call);
@@ -194,12 +197,20 @@ public class MainActivity
   }
 
   private void setupChatBox() {
-    LinearLayout chatBox = (LinearLayout) findViewById(R.id.chat_box);
-    chatBox.setAlpha(1);
     EditText textPeerName = (EditText) findViewById(R.id.text_peer_name);
     textPeerName.setEnabled(true);
     Button buttonCall = (Button) findViewById(R.id.button_call);
     buttonCall.setEnabled(true);
+  }
+
+  private void setStatusBox(String username, int statusString) {
+    TextView statusBar = (TextView) findViewById(R.id.call_status);
+    statusBar.setText(String.format(getString(R.string.status_bar), username, getString(statusString)));
+  }
+
+  private void setStatusBox(String username, int statusString, String peerUsername) {
+    TextView statusBar = (TextView) findViewById(R.id.call_status);
+    statusBar.setText(String.format(getString(R.string.status_bar), username, String.format(getString(statusString), peerUsername)));
   }
 
   private void checkPermissions() {
@@ -228,6 +239,7 @@ public class MainActivity
       @Override
       public void run() {
         setupChatBox();
+        setStatusBox(username, R.string.status_waiting);
       }
     });
   }
@@ -255,6 +267,7 @@ public class MainActivity
         callButton.setEnabled(false);
         Button endCallButton = (Button) findViewById(R.id.button_end_call);
         endCallButton.setEnabled(true);
+        setStatusBox(username, R.string.status_chating, peerUsername);
       }
     });
   }
@@ -272,6 +285,7 @@ public class MainActivity
         Button endCallButton = (Button) findViewById(R.id.button_end_call);
         endCallButton.setEnabled(false);
         VideoRendererGui.update(localRender, 0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
+        setStatusBox(username, R.string.status_waiting);
       }
     });
   }

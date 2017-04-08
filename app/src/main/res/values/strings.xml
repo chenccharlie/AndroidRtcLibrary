@@ -5,4 +5,9 @@
     <string name="button_login">LOGIN</string>
     <string name="text_login_name">Enter your name here...</string>
     <string name="text_peer_name">Enter receipient here...</string>
+    <string name="status_initializing">Initializing</string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_calling">Calling %1$s ...</string>
+    <string name="status_chating">Chating with %s</string>
+    <string name="status_bar">YOUR NAME: %1$s | STATUS: %2$s</string>
 </resources>

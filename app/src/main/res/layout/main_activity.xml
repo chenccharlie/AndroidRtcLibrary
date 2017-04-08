@@ -5,53 +5,68 @@
     android:layout_height="match_parent"
     android:theme="@android:style/Theme.Material.Light"
     tools:context="cceh.androidrtclibrary.testapp.MainActivity">
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/chat_box"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <EditText
-                android:id="@+id/text_peer_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/text_peer_name"
-                android:layout_weight="1"
-                android:enabled="false" />
-            <Button
-                android:id="@+id/button_call"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/button_call"
-                android:layout_weight="0"
-                android:onClick="makeCall"
-                android:enabled="false" />
-            <Button
-                android:id="@+id/button_end_call"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/button_end_call"
-                android:layout_weight="0"
-                android:onClick="endCall"
-                android:enabled="false" />
-        </LinearLayout>
         <android.opengl.GLSurfaceView
             android:id="@+id/gl_surface"
             android:layout_height="match_parent"
             android:layout_width="match_parent" />
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:alpha="0.6"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/text_peer_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/text_peer_name"
+                    android:layout_weight="1"
+                    android:enabled="false" />
+                <Button
+                    android:id="@+id/button_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_call"
+                    android:layout_weight="0"
+                    android:onClick="makeCall"
+                    android:enabled="false" />
+                <Button
+                    android:id="@+id/button_end_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_end_call"
+                    android:layout_weight="0"
+                    android:onClick="endCall"
+                    android:enabled="false" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/call_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/status_initializing"/>
+        </LinearLayout>
+    </RelativeLayout>
     <LinearLayout
         android:id="@+id/login_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:orientation="vertical"
         android:gravity="center"
         android:background="@color/white"
-        android:alpha="0.8"
+        android:alpha="0.75"
         android:visibility="invisible">
         <EditText
             android:id="@+id/text_login_name"
