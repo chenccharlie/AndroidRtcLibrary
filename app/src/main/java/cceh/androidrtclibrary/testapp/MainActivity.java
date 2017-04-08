@@ -127,7 +127,6 @@ public class MainActivity
     if (peerUsername != null) {
       rtcClient.disconnectFrom(peerUsername);
 
-      peerUsername = null;
       Button endCallButton = (Button) findViewById(R.id.button_end_call);
       endCallButton.setEnabled(false);
     }
@@ -246,28 +245,41 @@ public class MainActivity
 
   @Override
   public void onConnected(final String peerId) {
+    peerUsername = peerId;
+
     MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {
         Toast.makeText(MainActivity.this, "Connected to user: " + peerId, Toast.LENGTH_SHORT).show();
+        Button callButton = (Button) findViewById(R.id.button_call);
+        callButton.setEnabled(false);
+        Button endCallButton = (Button) findViewById(R.id.button_end_call);
+        endCallButton.setEnabled(true);
       }
     });
   }
 
   @Override
   public void onDisconnected(final String peerId) {
+    peerUsername = null;
+
     MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {
         Toast.makeText(MainActivity.this, "Disconnected from user: " + peerId, Toast.LENGTH_SHORT).show();
         Button callButton = (Button) findViewById(R.id.button_call);
         callButton.setEnabled(true);
+        Button endCallButton = (Button) findViewById(R.id.button_end_call);
+        endCallButton.setEnabled(false);
+        VideoRendererGui.update(localRender, 0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
       }
     });
   }
 
   @Override
   public void onRemoteStreamAdded(String peerId, final MediaStream remoteStream) {
+    peerUsername = peerId;
+
     MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {

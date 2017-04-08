@@ -216,7 +216,7 @@ public class Connection implements
   @Override
   public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
     if (iceConnectionState == PeerConnection.IceConnectionState.DISCONNECTED) {
-      disconnect();
+      destroyConnection();
     }
   }
 

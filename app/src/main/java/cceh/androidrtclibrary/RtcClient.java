@@ -168,7 +168,6 @@ public class RtcClient implements
       rtcEventListener.onConnected(peerId);
     } else if (newStatus.equals(Connection.Status.DISCONNECTED)) {
       rtcEventListener.onDisconnected(peerId);
-      getConnectionTo(peerId).disconnect();
       connections.remove(peerId);
     }
   }
