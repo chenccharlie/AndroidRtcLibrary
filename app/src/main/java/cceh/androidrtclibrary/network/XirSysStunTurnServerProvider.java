@@ -1,5 +1,6 @@
 package cceh.androidrtclibrary.network;
 
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * {@link StunTurnServerProvider} which fetches server info from www.xirsys.com .
@@ -68,7 +70,7 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
   public void fetchServers(Callback callback) {
     List<PeerConnection.IceServer> servers = new ArrayList<PeerConnection.IceServer>();
 
-    HttpClient httpClient = new DefaultHttpClient();
+    final HttpClient httpClient = new DefaultHttpClient();
     HttpPost request = new HttpPost(XIRSYS_URL);
     List<NameValuePair> data = new ArrayList<NameValuePair>();
     data.add(new BasicNameValuePair(DOMAIN, domain));
@@ -81,7 +83,18 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
     //Encoding POST data
     try {
       request.setEntity(new UrlEncodedFormEntity(data));
-      HttpResponse response = httpClient.execute(request);
+      AsyncTask<HttpPost, Void, HttpResponse> postRequest = new AsyncTask<HttpPost, Void, HttpResponse>() {
+        @Override
+        protected HttpResponse doInBackground(HttpPost... request) {
+          try {
+            return httpClient.execute(request[0]);
+          } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+          }
+        }
+      };
+      HttpResponse response = postRequest.execute(new HttpPost[] {request}).get();
       BufferedReader reader = new BufferedReader(new InputStreamReader(
           response.getEntity().getContent(), "UTF-8"));
 
@@ -107,12 +120,13 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
           servers.add(is);
         }
       }
-    } catch (IOException | JSONException e) {
+    } catch (IOException | JSONException | InterruptedException | ExecutionException e) {
       callback.onServerFetchFails(new NetworkException(e));
     }
 
     Log.i(TAG, "Servers: " + servers.toString());
     this.iceServers = servers;
+    addKnownServers();
     callback.onServersFetched();
   }
 
@@ -123,5 +137,33 @@ public class XirSysStunTurnServerProvider implements StunTurnServerProvider {
     } else {
       return iceServers;
     }
+  }
+
+  private void addKnownServers() {
+    iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.services.mozilla.com"));
+    iceServers.add(new PeerConnection.IceServer("turn:turn.bistri.com:80", "homeo", "homeo"));
+    iceServers.add(new PeerConnection.IceServer("turn:turn.anyfirewall.com:443?transport=tcp", "webrtc", "webrtc"));
+
+    // Extra Defaults - 19 STUN servers + 4 initial = 23 severs (+2 padding) = Array cap 25
+    iceServers.add(new PeerConnection.IceServer("stun:stun1.l.google.com:19302"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun2.l.google.com:19302"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun3.l.google.com:19302"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun4.l.google.com:19302"));
+    iceServers.add(new PeerConnection.IceServer("stun:23.21.150.121"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun01.sipphone.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.ekiga.net"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.fwdnet.net"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.ideasip.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.iptel.org"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.rixtelecom.se"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.schlund.de"));
+    iceServers.add(new PeerConnection.IceServer("stun:stunserver.org"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.softjoys.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.voiparound.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.voipbuster.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.voipstunt.com"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.voxgratia.org"));
+    iceServers.add(new PeerConnection.IceServer("stun:stun.xten.com"));
   }
 }
