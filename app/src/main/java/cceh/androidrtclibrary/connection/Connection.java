@@ -42,17 +42,16 @@ public class Connection implements
   public enum Status {
     // General
     NEW,
-    STREAMING,
     DISCONNECTED,
 
     // Caller status
     STARTED_WAITING_CALL,
     CALLING_WAITING_ANSWER,
-    ANSWER_RECEIVED_WAITING_STREAM,
+    ANSWER_RECEIVED,
 
     // Receiver status
     RECEIVED_WAITING_ANSWER,
-    ANSWERED_WAITING_STREAM
+    ANSWERED
   }
 
   private static final String TAG = "Connection";
@@ -64,7 +63,6 @@ public class Connection implements
   private final ConnectionParams connectionParams;
   private final ConnectionHandler connectionHandler;
   private final PeerConnection peerConnection;
-  private final Object lock;
 
   private Status status;
 
@@ -82,7 +80,6 @@ public class Connection implements
     this.connectionParams = connectionParams;
     this.connectionHandler = connectionHandler;
     this.status = Status.NEW;
-    this.lock = new Object();
 
     this.peerConnection = new PeerConnectionFactory().createPeerConnection(
         this.connectionParams.getIceServers(),
@@ -106,9 +103,7 @@ public class Connection implements
   }
 
   public Status getStatus() {
-    synchronized (lock) {
-      return status;
-    }
+    return status;
   }
 
   public void handleIncomingSignal(JSONObject signal) {
@@ -136,45 +131,37 @@ public class Connection implements
   }
 
   private void offerToConnect() {
-    synchronized (lock) {
-      setStatus(Status.STARTED_WAITING_CALL);
-      this.peerConnection.createOffer(this, connectionParams.getConnectionConstraints());
-    }
+    setStatus(Status.STARTED_WAITING_CALL);
+    this.peerConnection.createOffer(this, connectionParams.getConnectionConstraints());
   }
 
   private void handleOffer(JSONObject offer) throws JSONException {
-    synchronized (lock) {
-      if (outgoingCalling() || disconnected() || streaming()) {
-        Log.w(TAG, "Receiving offer in unexpected status: " + status);
-        return;
-      }
-
-      setStatus(Status.RECEIVED_WAITING_ANSWER);
-      this.peerConnection.setRemoteDescription(this, extractSdp(offer));
-      this.peerConnection.createAnswer(this, connectionParams.getConnectionConstraints());
+    if (outgoingCalling() || disconnected()) {
+      Log.w(TAG, "Receiving offer in unexpected status: " + status);
+      return;
     }
+
+    setStatus(Status.RECEIVED_WAITING_ANSWER);
+    this.peerConnection.setRemoteDescription(this, extractSdp(offer));
+    this.peerConnection.createAnswer(this, connectionParams.getConnectionConstraints());
   }
 
   private void handleAnswer(JSONObject answer) throws JSONException {
-    synchronized (lock) {
-      if (!status.equals(Status.CALLING_WAITING_ANSWER)) {
-        Log.w(TAG, "Receiving answer in unexpected status: " + status);
-        return;
-      }
-
-      setStatus(Status.ANSWER_RECEIVED_WAITING_STREAM);
-      this.peerConnection.setRemoteDescription(this, extractSdp(answer));
+    if (!status.equals(Status.CALLING_WAITING_ANSWER)) {
+      Log.w(TAG, "Receiving answer in unexpected status: " + status);
+      return;
     }
+
+    setStatus(Status.ANSWER_RECEIVED);
+    this.peerConnection.setRemoteDescription(this, extractSdp(answer));
   }
 
   private void handleRemoteIceCandidate(JSONObject iceCandidate) throws JSONException {
-    synchronized (lock) {
-      if (this.peerConnection.getRemoteDescription() == null) {
-        Log.w(TAG, "Receiving remote ice candidate when remote sdp is null. Status: " + status);
-        return;
-      }
-      this.peerConnection.addIceCandidate(extractIceCandidate(iceCandidate));
+    if (this.peerConnection.getRemoteDescription() == null) {
+      Log.w(TAG, "Receiving remote ice candidate when remote sdp is null. Status: " + status);
+      return;
     }
+    this.peerConnection.addIceCandidate(extractIceCandidate(iceCandidate));
   }
 
   private void handleDisconnectMessage() {
@@ -197,43 +184,29 @@ public class Connection implements
   }
 
   private void destroyConnection() {
-    synchronized (lock) {
-      if (disconnected()) return; // Already disconnected.
+    if (disconnected()) return; // Already disconnected.
 
-      setStatus(Status.DISCONNECTED);
-      this.peerConnection.removeStream(this.localMediaStream);
-      this.peerConnection.close();
-      this.peerConnection.dispose();
-    }
-  }
-
-  private boolean streaming() {
-    synchronized (lock) {
-      return status.equals(Status.STREAMING);
-    }
+    setStatus(Status.DISCONNECTED);
+    this.peerConnection.removeStream(this.localMediaStream);
+    this.peerConnection.close();
+    this.peerConnection.dispose();
   }
 
   private boolean disconnected() {
-    synchronized (lock) {
-      return status.equals(Status.DISCONNECTED);
-    }
+    return status.equals(Status.DISCONNECTED);
   }
 
   private boolean outgoingCalling() {
-    synchronized (lock) {
-      return status.equals(Status.STARTED_WAITING_CALL)
-          || status.equals(Status.CALLING_WAITING_ANSWER)
-          || status.equals(Status.ANSWER_RECEIVED_WAITING_STREAM);
-    }
+    return status.equals(Status.STARTED_WAITING_CALL)
+        || status.equals(Status.CALLING_WAITING_ANSWER)
+        || status.equals(Status.ANSWER_RECEIVED);
   }
 
   private void setStatus(Status newStatus) {
-    synchronized (lock) {
-      Status oldStatus = status;
-      status = newStatus;
-      connectionHandler.onConnectionStateChanged(peerId, oldStatus, newStatus);
-      Log.d(TAG, "Connection status to user " + peerId + " changed from " + oldStatus + " to " + newStatus);
-    }
+    Status oldStatus = status;
+    status = newStatus;
+    connectionHandler.onConnectionStateChanged(peerId, oldStatus, newStatus);
+    Log.d(TAG, "Connection status to user " + peerId + " changed from " + oldStatus + " to " + newStatus);
   }
 
   // PeerConnection.Observer
@@ -265,10 +238,7 @@ public class Connection implements
 
   @Override
   public void onAddStream(MediaStream mediaStream) {
-    synchronized (lock) {
-      setStatus(Status.STREAMING);
-      connectionHandler.onRemoteStreamAdded(peerId, mediaStream);
-    }
+    connectionHandler.onRemoteStreamAdded(peerId, mediaStream);
   }
 
   @Override
@@ -287,26 +257,24 @@ public class Connection implements
   // SdpObserver
   @Override
   public void onCreateSuccess(SessionDescription sdp) {
-    synchronized (lock) {
-      this.peerConnection.setLocalDescription(this, sdp);
+    this.peerConnection.setLocalDescription(this, sdp);
 
-      try {
-        switch (status) {
-          case STARTED_WAITING_CALL: // Created an Offer sdp
-            setStatus(Status.CALLING_WAITING_ANSWER);
-            signalingService.sendSignal(peerId, SignalMessages.createOfferMessage(userId, sdp));
-            break;
-          case RECEIVED_WAITING_ANSWER: // Created an Answer sdp
-            setStatus(Status.ANSWERED_WAITING_STREAM);
-            signalingService.sendSignal(peerId, SignalMessages.createAnswerMessage(userId, sdp));
-            break;
-          default:
-            Log.w(TAG, "Connection in illeagal state when session is created: " + status);
-        }
-      } catch (SignalingException e) {
-        Log.e(TAG, "Failed when creating signal message.", e);
-        disconnect();
+    try {
+      switch (status) {
+        case STARTED_WAITING_CALL: // Created an Offer sdp
+          setStatus(Status.CALLING_WAITING_ANSWER);
+          signalingService.sendSignal(peerId, SignalMessages.createOfferMessage(userId, sdp));
+          break;
+        case RECEIVED_WAITING_ANSWER: // Created an Answer sdp
+          setStatus(Status.ANSWERED);
+          signalingService.sendSignal(peerId, SignalMessages.createAnswerMessage(userId, sdp));
+          break;
+        default:
+          Log.w(TAG, "Connection in illeagal state when session is created: " + status);
       }
+    } catch (SignalingException e) {
+      Log.e(TAG, "Failed when creating signal message.", e);
+      disconnect();
     }
   }
 

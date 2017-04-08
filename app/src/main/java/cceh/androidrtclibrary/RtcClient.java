@@ -61,31 +61,25 @@ public class RtcClient implements
   }
 
   public void connectTo(String peerId) {
-    synchronized (lock) {
-      if (!clientInitialized) {
-        return;
-      }
-      getConnectionTo(peerId).connect();
+    if (!clientInitialized) {
+      return;
     }
+    getConnectionTo(peerId).connect();
   }
 
   public void disconnectFrom(String peerId) {
-    synchronized (lock) {
-      if (!clientInitialized) {
-        return;
-      }
-      getConnectionTo(peerId).disconnect();
+    if (!clientInitialized) {
+      return;
     }
+    getConnectionTo(peerId).disconnect();
   }
 
   public void close() {
-    synchronized (lock) {
-      for (Connection connection : connections.values()) {
-        connection.disconnect();
-      }
-      connections.clear();
-      signalingService.stopListening(userId);
+    for (Connection connection : connections.values()) {
+      connection.disconnect();
     }
+    connections.clear();
+    signalingService.stopListening(userId);
   }
 
   private void initializeClient() {
@@ -98,55 +92,47 @@ public class RtcClient implements
   }
 
   private void checkInitStatus() {
-    synchronized (lock) {
-      if (!clientInitialized && signalingServiceInitialized && stunTurnServerProviderInitialized) {
-        clientInitialized = true;
-        rtcEventListener.onClientReady();
-      }
+    if (!clientInitialized && signalingServiceInitialized && stunTurnServerProviderInitialized) {
+      clientInitialized = true;
+      rtcEventListener.onClientReady();
     }
   }
 
   private void dispatchSignal(JSONObject signal) {
-    synchronized (lock) {
-      if (!clientInitialized) {
-        return;
-      }
+    if (!clientInitialized) {
+      return;
+    }
 
-      try {
-        String senderId = signal.getString(SignalMessages.SENDER);
-        getConnectionTo(senderId).handleIncomingSignal(signal);
-      } catch (JSONException e) {
-        Log.w(TAG, "Failed parsing signal: " + signal);
-      }
+    try {
+      String senderId = signal.getString(SignalMessages.SENDER);
+      getConnectionTo(senderId).handleIncomingSignal(signal);
+    } catch (JSONException e) {
+      Log.w(TAG, "Failed parsing signal: " + signal);
     }
   }
 
   private Connection getConnectionTo(String peerId) {
-    synchronized (lock) {
-      try {
-        if (!connections.containsKey(peerId)) {
-          connections.put(peerId, new Connection(
-              userId,
-              peerId,
-              localMediaStream,
-              signalingService,
-              new ConnectionParams(stunTurnServerProvider.getServers()),
-              this));
-        }
-        return connections.get(peerId);
-      } catch (NetworkException e) {
-        throw new IllegalStateException("Should have initialized, unexpected network exception..", e);
+    try {
+      if (!connections.containsKey(peerId)) {
+        connections.put(peerId, new Connection(
+            userId,
+            peerId,
+            localMediaStream,
+            signalingService,
+            new ConnectionParams(stunTurnServerProvider.getServers()),
+            this));
       }
+      return connections.get(peerId);
+    } catch (NetworkException e) {
+      throw new IllegalStateException("Should have initialized, unexpected network exception..", e);
     }
   }
 
   // SignalingService.SignalHandler
   @Override
   public void onConnected(String userId) {
-    synchronized (lock) {
-      signalingServiceInitialized = true;
-      checkInitStatus();
-    }
+    signalingServiceInitialized = true;
+    checkInitStatus();
   }
 
   @Override
@@ -163,10 +149,8 @@ public class RtcClient implements
   // StunTurnServerProvider.Callback
   @Override
   public void onServersFetched() {
-    synchronized (lock) {
-      stunTurnServerProviderInitialized = true;
-      checkInitStatus();
-    }
+    stunTurnServerProviderInitialized = true;
+    checkInitStatus();
   }
 
   @Override
@@ -179,14 +163,13 @@ public class RtcClient implements
   @Override
   public void onConnectionStateChanged(
       String peerId, Connection.Status oldStatus, Connection.Status newStatus) {
-    synchronized (lock) {
-      if (newStatus.equals(Connection.Status.STREAMING)) {
-        rtcEventListener.onConnected(peerId);
-      } else if (newStatus.equals(Connection.Status.DISCONNECTED)) {
-        rtcEventListener.onDisconnected(peerId);
-        getConnectionTo(peerId).disconnect();
-        connections.remove(peerId);
-      }
+    if (newStatus.equals(Connection.Status.ANSWER_RECEIVED)
+        || newStatus.equals(Connection.Status.ANSWERED)) {
+      rtcEventListener.onConnected(peerId);
+    } else if (newStatus.equals(Connection.Status.DISCONNECTED)) {
+      rtcEventListener.onDisconnected(peerId);
+      getConnectionTo(peerId).disconnect();
+      connections.remove(peerId);
     }
   }
 
