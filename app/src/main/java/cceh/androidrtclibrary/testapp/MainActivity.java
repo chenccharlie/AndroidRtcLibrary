@@ -225,25 +225,45 @@ public class MainActivity
   // RtcEventListener
   @Override
   public void onClientReady() {
-    setupChatBox();
+    MainActivity.this.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        setupChatBox();
+      }
+    });
   }
 
   @Override
   public void onClientDied(Throwable e) {
-    Toast.makeText(this, "RtcClient died, quiting activity.", Toast.LENGTH_SHORT).show();
+    MainActivity.this.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainActivity.this, "RtcClient died, quiting activity.", Toast.LENGTH_SHORT).show();
+      }
+    });
     finish();
   }
 
   @Override
-  public void onConnected(String peerId) {
-    Toast.makeText(this, "Connected to user: " + peerId, Toast.LENGTH_SHORT).show();
+  public void onConnected(final String peerId) {
+    MainActivity.this.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainActivity.this, "Connected to user: " + peerId, Toast.LENGTH_SHORT).show();
+      }
+    });
   }
 
   @Override
-  public void onDisconnected(String peerId) {
-    Toast.makeText(this, "Disconnected from user: " + peerId, Toast.LENGTH_SHORT).show();
-    Button callButton = (Button) findViewById(R.id.button_call);
-    callButton.setEnabled(true);
+  public void onDisconnected(final String peerId) {
+    MainActivity.this.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainActivity.this, "Disconnected from user: " + peerId, Toast.LENGTH_SHORT).show();
+        Button callButton = (Button) findViewById(R.id.button_call);
+        callButton.setEnabled(true);
+      }
+    });
   }
 
   @Override
