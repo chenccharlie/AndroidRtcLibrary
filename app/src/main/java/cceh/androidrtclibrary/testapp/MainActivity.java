@@ -55,17 +55,44 @@ public class MainActivity
   private VideoSource localVideoSource;
   private VideoRenderer.Callbacks localRender;
   private VideoRenderer.Callbacks remoteRender;
-  private GLSurfaceView videoView;
   private MediaStream localMediaStream;
   private PubnubSignalingService pubnubSignalingService;
   private XirSysStunTurnServerProvider xirSysStunTurnServerProvider;
   private PeerConnectionFactory pcFactory;
 
+  private GLSurfaceView videoView;
+  private Button callButton;
+  private Button endCallButton;
+  private Button loginButton;
+
+
   @Override
   protected void onCreate(Bundle savedInstance) {
     super.onCreate(savedInstance);
-    setContentView(R.layout.main_activity);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    setContentView(R.layout.main_activity);
+
+    callButton = (Button) findViewById(R.id.button_call);
+    endCallButton = (Button) findViewById(R.id.button_end_call);
+    loginButton = (Button) findViewById(R.id.button_login);
+    callButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        makeCall(v);
+      }
+    });
+    endCallButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        endCall(v);
+      }
+    });
+    loginButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        login(v);
+      }
+    });
 
     checkPermissions();
     initializeLocalVideoAndVideoSurface();
@@ -120,9 +147,7 @@ public class MainActivity
     rtcClient.connectTo(peerUsername);
 
     setStatusBox(this.username, R.string.status_calling, peerUsername);
-    Button callButton = (Button) findViewById(R.id.button_call);
     callButton.setEnabled(false);
-    Button endCallButton = (Button) findViewById(R.id.button_end_call);
     endCallButton.setEnabled(true);
   }
 
@@ -130,7 +155,6 @@ public class MainActivity
     if (peerUsername != null) {
       rtcClient.disconnectFrom(peerUsername);
 
-      Button endCallButton = (Button) findViewById(R.id.button_end_call);
       endCallButton.setEnabled(false);
     }
   }
@@ -199,8 +223,7 @@ public class MainActivity
   private void setupChatBox() {
     EditText textPeerName = (EditText) findViewById(R.id.text_peer_name);
     textPeerName.setEnabled(true);
-    Button buttonCall = (Button) findViewById(R.id.button_call);
-    buttonCall.setEnabled(true);
+    callButton.setEnabled(true);
   }
 
   private void setStatusBox(String username, int statusString) {
@@ -263,9 +286,7 @@ public class MainActivity
       @Override
       public void run() {
         Toast.makeText(MainActivity.this, "Connected to user: " + peerId, Toast.LENGTH_SHORT).show();
-        Button callButton = (Button) findViewById(R.id.button_call);
         callButton.setEnabled(false);
-        Button endCallButton = (Button) findViewById(R.id.button_end_call);
         endCallButton.setEnabled(true);
         setStatusBox(username, R.string.status_chating, peerUsername);
       }
@@ -280,9 +301,7 @@ public class MainActivity
       @Override
       public void run() {
         Toast.makeText(MainActivity.this, "Disconnected from user: " + peerId, Toast.LENGTH_SHORT).show();
-        Button callButton = (Button) findViewById(R.id.button_call);
         callButton.setEnabled(true);
-        Button endCallButton = (Button) findViewById(R.id.button_end_call);
         endCallButton.setEnabled(false);
         VideoRendererGui.update(localRender, 0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
         setStatusBox(username, R.string.status_waiting);

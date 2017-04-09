@@ -10,8 +10,8 @@ import org.webrtc.MediaConstraints;
 public class MediaParams {
   public static MediaConstraints defaultVideoConstraints() {
     MediaConstraints videoConstraints = new MediaConstraints();
-    videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth","1280"));
-    videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight","720"));
+    videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth","1920"));
+    videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight","1080"));
     videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minWidth", "640"));
     videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minHeight","480"));
     return videoConstraints;

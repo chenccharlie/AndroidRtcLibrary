@@ -4,7 +4,7 @@
     <string name="button_end_call">END</string>
     <string name="button_login">LOGIN</string>
     <string name="text_login_name">Enter your name here...</string>
-    <string name="text_peer_name">Enter receipient here...</string>
+    <string name="text_peer_name">Recipient Name</string>
     <string name="status_initializing">Initializing</string>
     <string name="status_waiting">Waiting</string>
     <string name="status_calling">Calling %1$s ...</string>
