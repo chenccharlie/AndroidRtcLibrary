@@ -143,7 +143,12 @@ public class MainActivity
 
   public void makeCall(View view) {
     EditText textPeerName = (EditText) findViewById(R.id.text_peer_name);
-    peerUsername = textPeerName.getText().toString();
+    String enteredPeerName = textPeerName.getText().toString();
+    if (enteredPeerName.isEmpty() || enteredPeerName.equals(username)) {
+      return;
+    }
+
+    peerUsername = enteredPeerName;
     rtcClient.connectTo(peerUsername);
 
     setStatusBox(this.username, R.string.status_calling, peerUsername);
