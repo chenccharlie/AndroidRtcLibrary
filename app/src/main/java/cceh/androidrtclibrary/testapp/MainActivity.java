@@ -325,7 +325,7 @@ public class MainActivity
           if (remoteStream.videoTracks.size() == 0) return;
           remoteStream.videoTracks.get(0).addRenderer(new VideoRenderer(remoteRender));
           VideoRendererGui.update(remoteRender, 0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, false);
-          VideoRendererGui.update(localRender, 72, 65, 25, 25, VideoRendererGui.ScalingType.SCALE_ASPECT_FIT, true);
+          VideoRendererGui.update(localRender, 92, 92, 6, 6, VideoRendererGui.ScalingType.SCALE_ASPECT_FIT, true);
         }
         catch (Exception e){ e.printStackTrace(); }
       }
