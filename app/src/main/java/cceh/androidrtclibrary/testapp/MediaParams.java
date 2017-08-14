@@ -19,6 +19,9 @@ public class MediaParams {
 
   public static MediaConstraints defaultAudioConstraints() {
     MediaConstraints audioConstraints = new MediaConstraints();
+    audioConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+    audioConstraints.optional.add(new MediaConstraints.KeyValuePair("RtpDataChannels", "true"));
+    audioConstraints.optional.add(new MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"));
     return audioConstraints;
   }
 }

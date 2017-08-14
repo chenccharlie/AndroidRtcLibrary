@@ -39,8 +39,11 @@ public class ConnectionParams {
   private static MediaConstraints defaultConnectionConstraints() {
     MediaConstraints constraints = new MediaConstraints();
     constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
-    constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "false"));
+    constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
     constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
+
+    constraints.optional.add(new MediaConstraints.KeyValuePair("RtpDataChannels", "true"));
+    constraints.optional.add(new MediaConstraints.KeyValuePair("internalSctpDataChannels", "true"));
     return constraints;
   }
 }

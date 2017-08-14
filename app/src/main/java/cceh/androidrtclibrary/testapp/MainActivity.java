@@ -15,6 +15,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.webrtc.AudioSource;
+import org.webrtc.AudioTrack;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturer;
@@ -39,9 +41,9 @@ public class MainActivity
     extends Activity
     implements RtcEventListener {
 
-  private static final int CAMERA_PERMISSIONS_REQUEST = 1;
-  private static final int STORAGE_PERMISSIONS_REQUEST = 2;
+  private static final int CHECK_PERMISSIONS_REQUEST = 1;
   private static final String VIDEO_TRACK_ID = "video_track";
+  private static final String AUDIO_TRACK_ID = "audio_track";
   private static final String LOCAL_MEDIA_STREAM_ID = "local_media_stream";
 
   private static final String[] PERMISSIONS_STORAGE = {
@@ -53,6 +55,7 @@ public class MainActivity
   @Nullable private String peerUsername;
   @Nullable private RtcClient rtcClient;
   private VideoSource localVideoSource;
+  private AudioSource localAudioSource;
   private VideoRenderer.Callbacks localRender;
   private VideoRenderer.Callbacks remoteRender;
   private MediaStream localMediaStream;
@@ -125,6 +128,7 @@ public class MainActivity
     }
     this.localMediaStream.dispose();
     this.localVideoSource.dispose();
+    this.localAudioSource.dispose();
     this.pcFactory.dispose();
   }
 
@@ -182,11 +186,15 @@ public class MainActivity
     localVideoSource = pcFactory.createVideoSource(capturer, MediaParams.defaultVideoConstraints());
     VideoTrack localVideoTrack = pcFactory.createVideoTrack(VIDEO_TRACK_ID, localVideoSource);
 
+    localAudioSource = pcFactory.createAudioSource(MediaParams.defaultAudioConstraints());
+    AudioTrack localAudioTrack = pcFactory.createAudioTrack(AUDIO_TRACK_ID, localAudioSource);
+
     remoteRender = VideoRendererGui.create(0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, false);
     localRender = VideoRendererGui.create(0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, true);
 
     localMediaStream = pcFactory.createLocalMediaStream(LOCAL_MEDIA_STREAM_ID);
     localMediaStream.addTrack(localVideoTrack);
+    localMediaStream.addTrack(localAudioTrack);
 
     runOnUiThread(new Runnable() {
       @Override
@@ -242,21 +250,19 @@ public class MainActivity
   }
 
   private void checkPermissions() {
-    if (ContextCompat.checkSelfPermission(this, "android.permission.CAMERA")
-        != PackageManager.PERMISSION_GRANTED) {
+    if (ContextCompat.checkSelfPermission(this, "android.permission.RECORD_AUDIO")
+            != PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(this, "android.permission.CAMERA")
+            != PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE")
+            != PackageManager.PERMISSION_GRANTED
+        ) {
       ActivityCompat.requestPermissions(this,
-          new String[]{"android.permission.CAMERA"},
-          CAMERA_PERMISSIONS_REQUEST);
-    }
-
-    if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE")
-        != PackageManager.PERMISSION_GRANTED) {
-      // We don't have permission so prompt the user
-      ActivityCompat.requestPermissions(
-          this,
-          PERMISSIONS_STORAGE,
-          STORAGE_PERMISSIONS_REQUEST
-      );
+          new String[]{
+              "android.permission.CAMERA",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.WRITE_EXTERNAL_STORAGE"},
+          CHECK_PERMISSIONS_REQUEST);
     }
   }
 
